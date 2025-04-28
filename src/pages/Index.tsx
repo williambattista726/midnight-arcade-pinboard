@@ -1,13 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
+import React from "react";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import GameGrid from "@/components/GameGrid";
+import TaskBar from "@/components/TaskBar";
+import { GameProvider } from "@/context/GameContext";
+
+const Index: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <GameProvider>
+      <div className="flex h-screen bg-background overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <Navbar />
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              <h2 className="text-2xl font-bold text-white mb-4">All Games</h2>
+              <GameGrid />
+            </div>
+          </div>
+          <TaskBar />
+        </div>
       </div>
-    </div>
+    </GameProvider>
   );
 };
 
