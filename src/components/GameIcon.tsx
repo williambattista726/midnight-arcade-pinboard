@@ -16,8 +16,9 @@ interface GameIconProps {
 }
 
 const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
-  const { togglePinGame, toggleFavoriteGame, isPinned, isFavorite } = useGameContext();
+  const { togglePinGame, toggleFavoriteGame, isPinned, isFavorite, reorderGames } = useGameContext();
   const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Use type assertion to safely access the icon component
   const IconComponent = (LucideIcons as any)[game.icon];
@@ -41,6 +42,42 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
   const handleDragStart = (e: React.DragEvent) => {
     if (index !== undefined) {
       e.dataTransfer.setData('text/plain', index.toString());
+      setIsDragging(true);
+      
+      // Create a drag image
+      const dragElement = document.createElement('div');
+      dragElement.className = cn(
+        "flex items-center justify-center rounded-xl",
+        game.color,
+        sizeClasses[size]
+      );
+      dragElement.style.opacity = '0.5';
+      document.body.appendChild(dragElement);
+      e.dataTransfer.setDragImage(dragElement, 40, 40);
+      
+      // Remove the element after a short delay
+      setTimeout(() => {
+        document.body.removeChild(dragElement);
+      }, 0);
+    }
+  };
+  
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    
+    if (index !== undefined && startIndex !== index) {
+      reorderGames(startIndex, index);
     }
   };
 
@@ -48,11 +85,17 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
     <ContextMenu>
       <ContextMenuTrigger>
         <div 
-          className="flex flex-col items-center gap-2 p-2 transition-transform duration-200 cursor-pointer group"
+          className={cn(
+            "flex flex-col items-center gap-2 p-2 transition-transform duration-200 cursor-pointer group",
+            isDragging ? "opacity-50" : ""
+          )}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
           draggable={index !== undefined}
           onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
         >
           <div
             className={cn(

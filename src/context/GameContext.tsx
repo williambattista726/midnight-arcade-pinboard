@@ -89,10 +89,24 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const reorderGames = (startIndex: number, endIndex: number) => {
-    const result = Array.from(orderedGames);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    setOrderedGames(result);
+    const updateOrdering = (games: Game[]) => {
+      const result = Array.from(games);
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+      return result;
+    };
+
+    if (activeView === "all") {
+      setOrderedGames(updateOrdering(orderedGames));
+    } else {
+      setFavoriteGames(updateOrdering(favoriteGames));
+    }
+
+    toast({
+      title: "Game moved",
+      description: "The game has been repositioned.",
+      duration: 2000,
+    });
   };
 
   return (
