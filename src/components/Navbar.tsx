@@ -1,10 +1,20 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Bell, User } from "lucide-react";
+import { useGameContext } from "@/context/GameContext";
 
 const Navbar: React.FC = () => {
+  const { setSearchQuery } = useGameContext();
+  const [localSearch, setLocalSearch] = useState("");
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalSearch(value);
+    setSearchQuery(value);
+  };
+
   return (
     <div className="flex items-center justify-between px-6 h-16 bg-black/40 border-b border-white/10">
       <div className="flex items-center gap-4">
@@ -19,6 +29,8 @@ const Navbar: React.FC = () => {
           type="search"
           placeholder="Search games..."
           className="pl-10 bg-white/5 border border-white/10 focus:bg-white/10"
+          value={localSearch}
+          onChange={handleSearchChange}
         />
       </div>
       

@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { useGameContext } from "@/context/GameContext";
 import { Game } from "@/data/games";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { Pin } from "lucide-react";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { Pin, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 
@@ -12,10 +12,11 @@ type IconProps = React.HTMLAttributes<SVGElement>;
 interface GameIconProps {
   game: Game;
   size?: "sm" | "md" | "lg";
+  index?: number;
 }
 
-const GameIcon: React.FC<GameIconProps> = ({ game, size = "md" }) => {
-  const { togglePinGame, isPinned } = useGameContext();
+const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
+  const { togglePinGame, toggleFavoriteGame, isPinned, isFavorite } = useGameContext();
   const [isHovering, setIsHovering] = useState(false);
   
   // Use type assertion to safely access the icon component
@@ -32,18 +33,34 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md" }) => {
     togglePinGame(game);
   };
 
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toggleFavoriteGame(game);
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (index !== undefined) {
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  };
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <div className="flex flex-col items-center gap-2 p-2 transition-transform duration-200 cursor-pointer group"
-             onMouseEnter={() => setIsHovering(true)}
-             onMouseLeave={() => setIsHovering(false)}>
+        <div 
+          className="flex flex-col items-center gap-2 p-2 transition-transform duration-200 cursor-pointer group"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          draggable={index !== undefined}
+          onDragStart={handleDragStart}
+        >
           <div
             className={cn(
               "flex items-center justify-center rounded-xl transition-transform",
               sizeClasses[size],
               game.color,
               isPinned(game.id) ? "ring-2 ring-white/50" : "",
+              isFavorite(game.id) ? "ring-2 ring-pink-500/50" : "",
               isHovering ? "scale-110" : ""
             )}
           >
@@ -58,6 +75,11 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md" }) => {
         <ContextMenuItem onClick={handlePin} className="flex items-center gap-2 cursor-pointer">
           <Pin size={16} />
           <span>{isPinned(game.id) ? "Unpin from Taskbar" : "Pin to Taskbar"}</span>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={handleFavorite} className="flex items-center gap-2 cursor-pointer">
+          <Heart size={16} className={isFavorite(game.id) ? "fill-pink-500 text-pink-500" : ""} />
+          <span>{isFavorite(game.id) ? "Remove from Favorites" : "Add to Favorites"}</span>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

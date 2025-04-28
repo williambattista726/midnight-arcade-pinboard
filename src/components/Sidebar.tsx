@@ -1,7 +1,10 @@
 
 import React from "react";
-import { Home, Grid, Heart, Search, User } from "lucide-react";
+import { Home, Grid, Heart, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGameContext } from "@/context/GameContext";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import SettingsDialog from "./SettingsDialog";
 
 const SidebarIcon: React.FC<{
   icon: React.ReactNode;
@@ -24,35 +27,52 @@ const SidebarIcon: React.FC<{
 };
 
 const Sidebar: React.FC = () => {
-  const [activeItem, setActiveItem] = React.useState("home");
+  const { activeView, setActiveView } = useGameContext();
+  const [activeItem, setActiveItem] = React.useState(activeView === "favorites" ? "favorites" : "home");
+
+  const handleItemClick = (item: string) => {
+    setActiveItem(item);
+    if (item === "favorites") {
+      setActiveView("favorites");
+    } else if (activeView === "favorites") {
+      setActiveView("all");
+    }
+  };
 
   return (
     <div className="w-16 bg-sidebar h-full flex flex-col items-center py-4 gap-2 border-r border-white/10">
       <SidebarIcon
         icon={<Home size={24} />}
         active={activeItem === "home"}
-        onClick={() => setActiveItem("home")}
+        onClick={() => handleItemClick("home")}
       />
       <SidebarIcon
         icon={<Grid size={24} />}
         active={activeItem === "apps"}
-        onClick={() => setActiveItem("apps")}
+        onClick={() => handleItemClick("apps")}
       />
       <SidebarIcon
         icon={<Heart size={24} />}
         active={activeItem === "favorites"}
-        onClick={() => setActiveItem("favorites")}
+        onClick={() => handleItemClick("favorites")}
       />
-      <SidebarIcon
-        icon={<Search size={24} />}
-        active={activeItem === "search"}
-        onClick={() => setActiveItem("search")}
-      />
+      <Dialog>
+        <DialogTrigger asChild>
+          <div>
+            <SidebarIcon
+              icon={<Settings size={24} />}
+              active={activeItem === "settings"}
+              onClick={() => handleItemClick("settings")}
+            />
+          </div>
+        </DialogTrigger>
+        <SettingsDialog />
+      </Dialog>
       <div className="mt-auto">
         <SidebarIcon
           icon={<User size={24} />}
           active={activeItem === "profile"}
-          onClick={() => setActiveItem("profile")}
+          onClick={() => handleItemClick("profile")}
         />
       </div>
     </div>
