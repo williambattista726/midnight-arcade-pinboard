@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useGameContext } from "@/context/GameContext";
 import { Game } from "@/data/games";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { Pin, Unpin } from "lucide-react";
+import { Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 
@@ -18,7 +18,8 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md" }) => {
   const { togglePinGame, isPinned } = useGameContext();
   const [isHovering, setIsHovering] = useState(false);
   
-  const LucideIcon = (LucideIcons as Record<string, React.FC<IconProps>>)[game.icon];
+  // Use type assertion to safely access the icon component
+  const IconComponent = (LucideIcons as any)[game.icon];
 
   const sizeClasses = {
     sm: "w-12 h-12",
@@ -46,7 +47,7 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md" }) => {
               isHovering ? "scale-110" : ""
             )}
           >
-            {LucideIcon && <LucideIcon size={size === "sm" ? 24 : size === "md" ? 32 : 40} className="text-white" />}
+            {IconComponent && <IconComponent size={size === "sm" ? 24 : size === "md" ? 32 : 40} className="text-white" />}
           </div>
           <span className="text-sm font-medium text-white/90 max-w-[120px] text-center truncate">
             {game.title}
@@ -54,17 +55,10 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md" }) => {
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="glass-morphism text-white/90">
-        {isPinned(game.id) ? (
-          <ContextMenuItem onClick={handlePin} className="flex items-center gap-2 cursor-pointer">
-            <Unpin size={16} />
-            <span>Unpin from Taskbar</span>
-          </ContextMenuItem>
-        ) : (
-          <ContextMenuItem onClick={handlePin} className="flex items-center gap-2 cursor-pointer">
-            <Pin size={16} />
-            <span>Pin to Taskbar</span>
-          </ContextMenuItem>
-        )}
+        <ContextMenuItem onClick={handlePin} className="flex items-center gap-2 cursor-pointer">
+          <Pin size={16} />
+          <span>{isPinned(game.id) ? "Unpin from Taskbar" : "Pin to Taskbar"}</span>
+        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
