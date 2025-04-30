@@ -2,8 +2,10 @@
 export interface Game {
   id: string;
   title: string;
-  icon: string;
+  icon?: string;
+  image?: string;
   color: string;
+  url?: string;
 }
 
 export const games: Game[] = [

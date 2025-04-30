@@ -21,6 +21,13 @@ interface GameContextProps {
 
 const GameContext = createContext<GameContextProps | undefined>(undefined);
 
+// Keys for localStorage
+const STORAGE_KEYS = {
+  PINNED_GAMES: 'pinnedGames',
+  FAVORITE_GAMES: 'favoriteGames',
+  GAME_COLORS: 'gameColors',
+};
+
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [pinnedGames, setPinnedGames] = useState<Game[]>([]);
   const [favoriteGames, setFavoriteGames] = useState<Game[]>([]);
@@ -28,6 +35,51 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [activeView, setActiveView] = useState<"all" | "favorites">("all");
   const [orderedGames, setOrderedGames] = useState<Game[]>([...defaultGames]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [gameColors, setGameColors] = useState<Record<string, string>>({});
+
+  // Load pinned and favorite games from localStorage
+  useEffect(() => {
+    const savedPinnedGames = localStorage.getItem(STORAGE_KEYS.PINNED_GAMES);
+    const savedFavoriteGames = localStorage.getItem(STORAGE_KEYS.FAVORITE_GAMES);
+    const savedGameColors = localStorage.getItem(STORAGE_KEYS.GAME_COLORS);
+    
+    if (savedPinnedGames) {
+      try {
+        setPinnedGames(JSON.parse(savedPinnedGames));
+      } catch (error) {
+        console.error('Error parsing pinned games from localStorage', error);
+      }
+    }
+    
+    if (savedFavoriteGames) {
+      try {
+        setFavoriteGames(JSON.parse(savedFavoriteGames));
+      } catch (error) {
+        console.error('Error parsing favorite games from localStorage', error);
+      }
+    }
+    
+    if (savedGameColors) {
+      try {
+        setGameColors(JSON.parse(savedGameColors));
+      } catch (error) {
+        console.error('Error parsing game colors from localStorage', error);
+      }
+    }
+  }, []);
+
+  // Save pinned and favorite games to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PINNED_GAMES, JSON.stringify(pinnedGames));
+  }, [pinnedGames]);
+  
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.FAVORITE_GAMES, JSON.stringify(favoriteGames));
+  }, [favoriteGames]);
+  
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.GAME_COLORS, JSON.stringify(gameColors));
+  }, [gameColors]);
 
   // Load games from text files
   useEffect(() => {
@@ -45,11 +97,25 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         const newGames = gameDataList.flatMap((gameData: GameData) => 
           gameData.folders.map((folder, index) => {
             const title = formatGameName(folder);
+            const gameId = `${gameData.directory}-${index}`;
+            
+            // Use stored color if available, otherwise generate a new one
+            const storedColor = gameColors[gameId];
+            const color = storedColor || getRandomColor();
+            
+            // Store the color if it's new
+            if (!storedColor) {
+              setGameColors(prev => ({
+                ...prev,
+                [gameId]: color
+              }));
+            }
+            
             return {
-              id: `${gameData.directory}-${index}`,
+              id: gameId,
               title,
-              icon: "GameController", // Default icon
-              color: getRandomColor(),
+              icon: "gamepad", // Default icon
+              color,
               url: `${gameData.directory}${folder}`
             };
           })

@@ -20,8 +20,11 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   
+  // Check if the game has an image property
+  const hasImage = game.image !== undefined;
+  
   // Use type assertion to safely access the icon component
-  const IconComponent = (LucideIcons as any)[game.icon];
+  const IconComponent = !hasImage && game.icon ? (LucideIcons as any)[game.icon] : null;
 
   const sizeClasses = {
     sm: "w-12 h-12",
@@ -110,7 +113,15 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
               isHovering ? "scale-110" : ""
             )}
           >
-            {IconComponent && <IconComponent size={size === "sm" ? 24 : size === "md" ? 32 : 40} className="text-white" />}
+            {hasImage ? (
+              <img 
+                src={game.image} 
+                alt={game.title} 
+                className="w-full h-full object-cover rounded-xl"
+              />
+            ) : (
+              IconComponent && <IconComponent size={size === "sm" ? 24 : size === "md" ? 32 : 40} className="text-white" />
+            )}
           </div>
           <span className="text-sm font-medium text-white/90 max-w-[120px] text-center truncate">
             {game.title}
