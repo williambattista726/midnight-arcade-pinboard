@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { Game, games as defaultGames } from "../data/games";
 import { toast } from "@/components/ui/use-toast";
-import { loadGameList, formatGameName, GameData } from "@/utils/gameLoader";
+import { loadGameList, formatGameName, GameData, defaultGameSources } from "@/utils/gameLoader";
 
 interface GameContextProps {
   pinnedGames: Game[];
@@ -35,10 +35,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
         
-        const gameDataList = await Promise.all([
-          loadGameList({ file: '/htmlgames.txt', directory: '/htmlgames/' }),
-          loadGameList({ file: '/htmlgames1.txt', directory: '/htmlgames1/html5/' })
-        ]);
+        // Developers can modify defaultGameSources in gameLoader.ts to add or change game sources
+        const gameDataList = await Promise.all(
+          defaultGameSources.map(source => 
+            loadGameList({ file: source.file, directory: source.directory })
+          )
+        );
         
         const newGames = gameDataList.flatMap((gameData: GameData) => 
           gameData.folders.map((folder, index) => {

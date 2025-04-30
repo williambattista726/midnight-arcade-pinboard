@@ -38,10 +38,13 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
     e.preventDefault();
     toggleFavoriteGame(game);
   };
-
+  
+  // Drag handlers for reordering in the grid
   const handleDragStart = (e: React.DragEvent) => {
     if (index !== undefined) {
       e.dataTransfer.setData('text/plain', index.toString());
+      // Also add game data to support dragging to taskbar
+      e.dataTransfer.setData('application/json', JSON.stringify(game));
       setIsDragging(true);
       
       // Create a drag image
@@ -91,7 +94,7 @@ const GameIcon: React.FC<GameIconProps> = ({ game, size = "md", index }) => {
           )}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          draggable={index !== undefined}
+          draggable={true} // Make all game icons draggable for taskbar
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}

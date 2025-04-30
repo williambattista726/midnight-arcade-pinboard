@@ -41,3 +41,9 @@ export function formatGameName(folder: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+// Configuration for game sources - developers can modify this
+export const defaultGameSources = [
+  { file: '/htmlgames.txt', directory: '/htmlgames/' },
+  { file: '/htmlgames1.txt', directory: '/htmlgames1/html5/' }
+];
