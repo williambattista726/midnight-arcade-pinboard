@@ -1,8 +1,8 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import { Game, games as defaultGames } from "../data/games";
+import { Game } from "../data/games";
 import { toast } from "@/components/ui/use-toast";
-import { loadGameList, formatGameName, GameData, defaultGameSources } from "@/utils/gameLoader";
+import { loadGameList, formatGameName, GameData, defaultGameSources, getRandomColor } from "@/utils/gameLoader";
+import { gameConfig, defaultGames as configDefaultGames } from "@/config/gameConfig";
 
 interface GameContextProps {
   pinnedGames: Game[];
@@ -33,7 +33,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [favoriteGames, setFavoriteGames] = useState<Game[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeView, setActiveView] = useState<"all" | "favorites">("all");
-  const [orderedGames, setOrderedGames] = useState<Game[]>([...defaultGames]);
+  const [orderedGames, setOrderedGames] = useState<Game[]>([...configDefaultGames]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [gameColors, setGameColors] = useState<Record<string, string>>({});
 
@@ -81,13 +81,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem(STORAGE_KEYS.GAME_COLORS, JSON.stringify(gameColors));
   }, [gameColors]);
 
-  // Load games from text files
+  // Load games from text files using our configuration
   useEffect(() => {
     const loadGames = async () => {
       try {
         setIsLoading(true);
         
-        // Developers can modify defaultGameSources in gameLoader.ts to add or change game sources
+        // Use the game sources from the configuration
         const gameDataList = await Promise.all(
           defaultGameSources.map(source => 
             loadGameList({ file: source.file, directory: source.directory })
@@ -114,7 +114,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             return {
               id: gameId,
               title,
-              icon: "gamepad", // Default icon
+              icon: gameConfig.defaultIcon, // Use the default icon from config
               color,
               url: `${gameData.directory}${folder}`
             };
@@ -122,11 +122,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         );
         
         setOrderedGames(newGames);
-        toast({
-          title: "Games Loaded",
-          description: `Successfully loaded ${newGames.length} games`,
-          duration: 3000,
-        });
+        
+        // Show toast notification if there are games
+        if (newGames.length > 0) {
+          toast({
+            title: "Games Loaded",
+            description: `Successfully loaded ${newGames.length} games`,
+            duration: 3000,
+          });
+        }
       } catch (error) {
         console.error("Error loading games:", error);
         toast({
@@ -135,8 +139,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           variant: "destructive",
           duration: 5000,
         });
-        // Use default games as fallback
-        setOrderedGames([...defaultGames]);
+        // Use default games from config as fallback
+        setOrderedGames([...configDefaultGames]);
       } finally {
         setIsLoading(false);
       }
@@ -174,18 +178,24 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     
     if (isCurrentlyPinned) {
       setPinnedGames(pinnedGames.filter((g) => g.id !== game.id));
-      toast({
-        title: "Game unpinned",
-        description: `${game.title} has been removed from your taskbar.`,
-        duration: 3000,
-      });
+      
+      if (gameConfig.showPinNotifications) {
+        toast({
+          title: "Game unpinned",
+          description: `${game.title} has been removed from your taskbar.`,
+          duration: 3000,
+        });
+      }
     } else {
       setPinnedGames([...pinnedGames, game]);
-      toast({
-        title: "Game pinned",
-        description: `${game.title} has been added to your taskbar.`,
-        duration: 3000,
-      });
+      
+      if (gameConfig.showPinNotifications) {
+        toast({
+          title: "Game pinned",
+          description: `${game.title} has been added to your taskbar.`,
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -194,18 +204,24 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     
     if (isCurrentlyFavorite) {
       setFavoriteGames(favoriteGames.filter((g) => g.id !== game.id));
-      toast({
-        title: "Removed from favorites",
-        description: `${game.title} has been removed from your favorites.`,
-        duration: 3000,
-      });
+      
+      if (gameConfig.showFavoriteNotifications) {
+        toast({
+          title: "Removed from favorites",
+          description: `${game.title} has been removed from your favorites.`,
+          duration: 3000,
+        });
+      }
     } else {
       setFavoriteGames([...favoriteGames, game]);
-      toast({
-        title: "Added to favorites",
-        description: `${game.title} has been added to your favorites.`,
-        duration: 3000,
-      });
+      
+      if (gameConfig.showFavoriteNotifications) {
+        toast({
+          title: "Added to favorites",
+          description: `${game.title} has been added to your favorites.`,
+          duration: 3000,
+        });
+      }
     }
   };
 

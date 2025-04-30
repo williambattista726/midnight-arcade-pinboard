@@ -1,5 +1,7 @@
 
 // Utility to load game lists from text files
+import { gameConfig } from "@/config/gameConfig";
+
 export interface GameLoadOptions {
   file: string;
   directory: string;
@@ -42,8 +44,11 @@ export function formatGameName(folder: string): string {
     .join(' ');
 }
 
-// Configuration for game sources - developers can modify this
-export const defaultGameSources = [
-  { file: '/htmlgames.txt', directory: '/htmlgames/' },
-  { file: '/htmlgames1.txt', directory: '/htmlgames1/html5/' }
-];
+// Instead of hardcoding game sources, we use the configuration file
+export const defaultGameSources = gameConfig.sources;
+
+// Get a random color from the configured palette
+export function getRandomColor(): string {
+  const colors = gameConfig.colorPalette;
+  return colors[Math.floor(Math.random() * colors.length)];
+}
