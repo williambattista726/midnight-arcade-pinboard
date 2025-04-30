@@ -1,0 +1,7 @@
+
+action-adventure
+strategy-master
+rpg-classic
+platformer-challenge
+survival-horror
+simulation-city
